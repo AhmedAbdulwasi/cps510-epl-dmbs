@@ -1,0 +1,113 @@
+Metadata-Version: 2.4
+Name: cps510-epl-dbms
+Version: 0.1.0
+Summary: Tkinter interface for the CPS510 English Premier League database
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: oracledb>=2.0
+
+# CPS510 English Premier League DBMS
+
+Starter Python/Tkinter interface for connecting to an Oracle database with
+[`python-oracledb`](https://python-oracledb.readthedocs.io/). The first screen
+provides a read-only view of selected columns from the `Clubs` table described
+in the course database schema.
+
+This scaffold does not create tables, seed data, or implement database
+modifications. It uses python-oracledb Thin mode by default, so no Oracle
+Client installation is needed for a basic connection.
+
+## Requirements
+
+- Python 3.9 or later
+- Access to an Oracle 21c, 23ai, or 26ai database with the project schema
+- Tkinter (included with most Python distributions; some Linux distributions
+  package it separately)
+
+## Setup
+
+Open and connect to **CS-public-VPN** before starting the application.
+
+From the repository root, create and activate a virtual environment:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e .
+```
+
+Set the connection values in your shell. Do not commit credentials:
+
+```bash
+export ORACLE_USER="your_username"
+export ORACLE_PASSWORD="your_password"
+export ORACLE_DSN="orsrv1.cs.torontomu.ca:1521/orcldb"
+```
+
+Use the DSN for the database available to you. Examples:
+
+- Course Oracle database: `orsrv1.cs.torontomu.ca:1521/orcldb` (`orcldb` is the database name)
+- Oracle 21c XE: `localhost:1521/XEPDB1`
+- Oracle 23ai: the host and service name supplied by your course
+- Oracle 26ai Free: `localhost:1521/FREEPDB1`
+
+## Verify the Oracle connection
+
+First confirm that the database host is reachable:
+
+```bash
+nc -vz orsrv1.cs.torontomu.ca 1521
+```
+
+A successful check reports that the connection succeeded. If it is refused or
+timed out, make sure **CS-public-VPN** is enabled and try again.
+
+Then verify the credentials and query the database:
+
+```bash
+python - <<'PY'
+from epl_dbms.database import connect
+from epl_dbms.settings import OracleSettings
+
+settings = OracleSettings.from_environment()
+with connect(settings) as connection:
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT 1 FROM dual")
+        print("Oracle connection successful:", cursor.fetchone()[0] == 1)
+PY
+```
+
+If this prints `Oracle connection successful: True`, the DSN, VPN, credentials,
+and database access are working.
+
+Start the application:
+
+```bash
+python -m epl_dbms
+```
+
+The application reads `ORACLE_USER`, `ORACLE_PASSWORD`, and `ORACLE_DSN` from
+the process environment. A missing value is reported before connecting.
+
+## Current screen
+
+The Clubs view runs a fixed `SELECT` for `Team_ID`, `Club_Name`, `Valuation`,
+`Stadium_Name`, `Year_Founded`, and `City`, ordered by `Team_ID`. The `Crest`
+column is not displayed because its database type is not established by the
+provided schema document. The view is read-only and includes a refresh button.
+
+The project expects those column names to match the actual schema. No DDL or
+data changes are performed; if the database uses different names or casing,
+adjust the query in `src/epl_dbms/repositories/clubs.py`.
+
+## Project layout
+
+```text
+src/epl_dbms/
+  __main__.py                   Application entry point
+  settings.py                   Environment-based Oracle connection settings
+  database.py                   Thin-mode connection helper
+  repositories/clubs.py         Read-only Clubs query
+  ui/clubs_window.py            Tkinter Clubs window
+```
