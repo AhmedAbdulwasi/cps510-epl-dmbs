@@ -1,5 +1,3 @@
-"""Read-only queries for the Clubs table."""
-
 from epl_dbms.database import connect
 from epl_dbms.settings import OracleSettings
 
@@ -19,9 +17,13 @@ CLUBS_QUERY = """
 """
 
 
-def fetch_clubs(settings: OracleSettings) -> list[tuple[object, ...]]:
-    """Return all Clubs rows for the initial read-only UI."""
-    connection = connect(settings)
+def fetch_clubs(
+    settings: OracleSettings,
+    connection=None,
+) -> list[tuple[object, ...]]:
+    owns_connection = connection is None
+    if owns_connection:
+        connection = connect(settings)
     try:
         cursor = connection.cursor()
         try:
@@ -30,4 +32,5 @@ def fetch_clubs(settings: OracleSettings) -> list[tuple[object, ...]]:
         finally:
             cursor.close()
     finally:
-        connection.close()
+        if owns_connection:
+            connection.close()

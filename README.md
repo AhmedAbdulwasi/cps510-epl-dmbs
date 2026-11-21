@@ -1,9 +1,7 @@
 # CPS510 English Premier League DBMS
 
-Starter Python/Tkinter interface for connecting to an Oracle database with
-[`python-oracledb`](https://python-oracledb.readthedocs.io/). The first screen
-provides a read-only view of selected columns from the `Clubs` table described
-in the course database schema.
+Streamlit interface for connecting to an Oracle database with
+[`python-oracledb`](https://python-oracledb.readthedocs.io/).
 
 This scaffold does not create tables, seed data, or implement database
 modifications. It uses python-oracledb Thin mode by default, so no Oracle
@@ -13,8 +11,7 @@ Client installation is needed for a basic connection.
 
 - Python 3.10 or later
 - Access to an Oracle 21c, 23ai, or 26ai database with the project schema
-- Tkinter (included with most Python distributions; some Linux distributions
-  package it separately)
+- Streamlit
 
 ## Setup
 
@@ -29,15 +26,21 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-Set the connection values in your shell. Do not commit credentials:
+Create a `.env` file in the repository root. DO NOT COMMIT IT. DO NOT.
 
 ```bash
-export ORACLE_USER="your_username"
-export ORACLE_PASSWORD="your_password"
-export ORACLE_DSN="orsrv1.cs.torontomu.ca:1521/orcldb"
 ```
 
-Use the DSN for the database available to you. Examples:
+Edit `.env` with your credentials:
+
+```dotenv
+ORACLE_USER=your_username
+ORACLE_PASSWORD=your_password
+ORACLE_DSN=orsrv1.cs.torontomu.ca:1521/orcldb
+```
+
+Shell environment variables override matching values in `.env`. Use the DSN
+for the database available to you. Examples:
 
 - Course Oracle database: `orsrv1.cs.torontomu.ca:1521/orcldb` (`orcldb` is the database name)
 - Oracle 21c XE: `localhost:1521/XEPDB1`
@@ -48,7 +51,7 @@ Use the DSN for the database available to you. Examples:
 Start the application:
 
 ```bash
-python -m epl_dbms
+streamlit run src/epl_dbms/__main__.py
 ```
 
 The application reads `ORACLE_USER`, `ORACLE_PASSWORD`, and `ORACLE_DSN` from
@@ -69,9 +72,8 @@ adjust the query in `src/epl_dbms/repositories/clubs.py`.
 
 ```text
 src/epl_dbms/
-  __main__.py                   Application entry point
+  __main__.py                   Streamlit application entry point
   settings.py                   Environment-based Oracle connection settings
   database.py                   Thin-mode connection helper
   repositories/clubs.py         Read-only Clubs query
-  ui/clubs_window.py            Tkinter Clubs window
 ```

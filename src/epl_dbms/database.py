@@ -1,5 +1,3 @@
-"""Oracle connection creation."""
-
 import oracledb
 
 from epl_dbms.settings import OracleSettings
