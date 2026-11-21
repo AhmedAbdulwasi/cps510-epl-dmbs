@@ -44,34 +44,6 @@ Use the DSN for the database available to you. Examples:
 - Oracle 23ai: the host and service name supplied by your course
 - Oracle 26ai Free: `localhost:1521/FREEPDB1`
 
-## Verify the Oracle connection
-
-First confirm that the database host is reachable:
-
-```bash
-nc -vz orsrv1.cs.torontomu.ca 1521
-```
-
-A successful check reports that the connection succeeded. If it is refused or
-timed out, make sure **CS-public-VPN** is enabled and try again.
-
-Then verify the credentials and query the database:
-
-```bash
-python - <<'PY'
-from epl_dbms.database import connect
-from epl_dbms.settings import OracleSettings
-
-settings = OracleSettings.from_environment()
-with connect(settings) as connection:
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT 1 FROM dual")
-        print("Oracle connection successful:", cursor.fetchone()[0] == 1)
-PY
-```
-
-If this prints `Oracle connection successful: True`, the DSN, VPN, credentials,
-and database access are working.
 
 Start the application:
 
