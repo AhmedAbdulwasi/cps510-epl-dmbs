@@ -1,4 +1,0 @@
-oracledb>=2.0
-pandas>=2.0
-python-dotenv>=1.0
-streamlit>=1.32
