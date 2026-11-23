@@ -26,9 +26,10 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-Create a `.env` file in the repository root. DO NOT COMMIT IT. DO NOT.
+Create a `.env` file in the repository root. Do not commit credentials.
 
 ```bash
+touch .env
 ```
 
 Edit `.env` with your credentials:
@@ -64,6 +65,11 @@ The Clubs view runs a fixed `SELECT` for `Team_ID`, `Club_Name`, `Valuation`,
 column is not displayed because its database type is not established by the
 provided schema document. The view is read-only and includes a refresh button.
 
+The Query Tables page provides five predefined read-only reports. Select a
+report and choose **Run Query** to display the results. Choose **Exit** in the
+sidebar to close the Oracle connection and clear the current Streamlit session
+state; this does not stop the Streamlit server.
+
 The project expects those column names to match the actual schema. No DDL or
 data changes are performed; if the database uses different names or casing,
 adjust the query in `src/epl_dbms/repositories/clubs.py`.
@@ -76,4 +82,5 @@ src/epl_dbms/
   settings.py                   Environment-based Oracle connection settings
   database.py                   Thin-mode connection helper
   repositories/clubs.py         Read-only Clubs query
+  repositories/queries.py       Predefined Query Tables reports
 ```

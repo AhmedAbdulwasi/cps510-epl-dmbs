@@ -4,6 +4,7 @@ import oracledb
 
 from epl_dbms.database import connect
 from epl_dbms.repositories.clubs import CLUB_COLUMNS, fetch_clubs
+from epl_dbms.repositories.queries import QUERY_TABLES, fetch_query_results
 from epl_dbms.settings import OracleSettings
 
 
@@ -24,7 +25,25 @@ def main() -> None:
     )
 
     st.sidebar.title("EPL Database")
-    page = st.sidebar.radio("Navigation", ["Clubs", "Table Browser", "Data Entry", "Reports", "Views"],)
+    page = st.sidebar.radio(
+        "Navigation",
+        ["Clubs", "Query Tables", "Table Browser", "Data Entry", "Exit"],
+    )
+
+    if page == "Exit":
+        connection = st.session_state.get("oracle_connection")
+        close_error = None
+        if connection is not None:
+            try:
+                connection.close()
+            except oracledb.Error as error:
+                close_error = error
+        st.session_state.clear()
+        if close_error is not None:
+            st.error(f"Couldnt close Oracle cleanly:\n\n{close_error}")
+        else:
+            st.success("Oracle session closed.")
+        st.stop()
 
     if "oracle_settings" not in st.session_state:
         try:
@@ -40,7 +59,7 @@ def main() -> None:
 
     settings = st.session_state.oracle_settings
 
-    st.title("CPS510 English Premier League DBMS")
+    st.title("English Premier League DBMS")
 
     if "oracle_connection" not in st.session_state:
         try:
@@ -66,13 +85,25 @@ def main() -> None:
         try:
             rows = fetch_clubs(settings, connection)
             data = pd.DataFrame(rows, columns=CLUB_COLUMNS)
-            st.dataframe(data, use_container_width=True, hide_index=True)
-            st.caption(f"{len(data)} club(s) loaded")
+            st.table(data)
         except oracledb.Error as error:
             st.error(f"Could not load the Clubs table:\n\n{error}")
         else:
             if st.button("Refresh", type="primary"):
                 st.rerun()
+    elif page == "Query Tables":
+        st.header("Query Tables")
+        query_name = st.selectbox("Choose a predefined query", list(QUERY_TABLES))
+        if st.button("Run Query", type="primary"):
+            try:
+                columns, rows = fetch_query_results(
+                    connection,
+                    QUERY_TABLES[query_name],
+                )
+                results = pd.DataFrame(rows, columns=columns)
+                st.table(results)
+            except oracledb.Error as error:
+                st.error(f"Could not run the selected query:\n\n{error}")
     else:
         st.header(page)
         st.info("Soon... This page is under construction.")
