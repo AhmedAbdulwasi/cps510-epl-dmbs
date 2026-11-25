@@ -175,3 +175,32 @@ def create_tables(connection: oracledb.Connection) -> list[str]:
     finally:
         cursor.close()
     return messages
+
+
+def drop_tables(connection: oracledb.Connection) -> list[str]:
+    """
+    Drop all schema tables in reverse dependency order.
+
+    The drop order is the Create order backwards (Player_Accolades first,
+    Stadiums last), so no table is dropped while another still points to it.
+    CASCADE CONSTRAINTS is a second safety net for any leftover foreign keys.
+    """
+    messages: list[str] = []
+    cursor = connection.cursor()
+    try:
+        for table_name, _ in reversed(CREATE_TABLE_STATEMENTS):
+            try:
+                # Table names come from our fixed list, never from user input,
+                # so building the SQL with an f-string is safe here.
+                cursor.execute(f"DROP TABLE {table_name} CASCADE CONSTRAINTS")
+                messages.append(f"Dropped table {table_name}.")
+            except oracledb.Error as error:
+                error_obj, = error.args
+                # ORA-00942: table or view does not exist
+                if getattr(error_obj, "code", None) == 942:
+                    messages.append(f"Table {table_name} does not exist (skipped).")
+                else:
+                    messages.append(f"Failed to drop {table_name}: {error_obj.message}")
+    finally:
+        cursor.close()
+    return messages
