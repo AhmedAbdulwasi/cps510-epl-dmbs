@@ -2,13 +2,16 @@ import oracledb
 
 QUERY_TABLES = {
     "Managers without fast outfielders": """
-        SELECT Team_ID AS "TEAM ID"
-        FROM Managers
-        WHERE Team_ID IS NOT NULL
+        SELECT m.Team_ID AS "TEAM ID",
+               c.Club_Name AS "CLUB"
+        FROM Managers m
+        LEFT JOIN Clubs c ON c.Team_ID = m.Team_ID
+        WHERE m.Team_ID IS NOT NULL
         MINUS
-        SELECT p.Team_ID
+        SELECT p.Team_ID, c2.Club_Name
         FROM Players p
         JOIN Outfielder_Attributes o ON o.Player_ID = p.Player_ID
+        JOIN Clubs c2 ON c2.Team_ID = p.Team_ID
         WHERE o.Pace >= 80
     """,
     "Club average goals and assists": """

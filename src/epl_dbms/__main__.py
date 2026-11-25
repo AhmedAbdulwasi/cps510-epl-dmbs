@@ -1,11 +1,34 @@
-import pandas as pd
+"""CPS510 English Premier League DBMS — Streamlit entry point."""
+
+from __future__ import annotations
+
 import streamlit as st
 import oracledb
 
 from epl_dbms.database import connect
-from epl_dbms.repositories.clubs import CLUB_COLUMNS, fetch_clubs
-from epl_dbms.repositories.queries import QUERY_TABLES, fetch_query_results
 from epl_dbms.settings import OracleSettings
+from epl_dbms.ui.browser import render_table_browser
+from epl_dbms.ui.home import render_home
+from epl_dbms.ui.queries import render_query_tables
+from epl_dbms.ui.schema_pages import (
+    render_create_tables,
+    render_data_entry_stub,
+    render_drop_tables_stub,
+    render_populate_tables,
+)
+from epl_dbms.ui.styles import inject_styles
+
+# Rubric menu options plus landing / browser extras.
+MENU_OPTIONS = [
+    "Home",
+    "Create Tables",
+    "Populate Tables",
+    "Query Tables",
+    "Table Browser",
+    "Drop Tables",
+    "Data Entry",
+    "Exit",
+]
 
 
 def render_connection_status(connection: oracledb.Connection) -> None:
@@ -23,11 +46,19 @@ def main() -> None:
         page_icon="⚽",
         layout="wide",
     )
+    inject_styles()
+
+    if "nav_page" not in st.session_state:
+        st.session_state.nav_page = "Home"
+    if "browser_view" not in st.session_state:
+        st.session_state.browser_view = "Players"
 
     st.sidebar.title("EPL Database")
+    # key="nav_page" lets Home shortcut buttons set the active menu item.
     page = st.sidebar.radio(
         "Navigation",
-        ["Clubs", "Query Tables", "Table Browser", "Data Entry", "Exit"],
+        MENU_OPTIONS,
+        key="nav_page",
     )
 
     if page == "Exit":
@@ -40,7 +71,7 @@ def main() -> None:
                 close_error = error
         st.session_state.clear()
         if close_error is not None:
-            st.error(f"Couldnt close Oracle cleanly:\n\n{close_error}")
+            st.error(f"Could not close Oracle cleanly:\n\n{close_error}")
         else:
             st.success("Oracle session closed.")
         st.stop()
@@ -52,14 +83,12 @@ def main() -> None:
             st.session_state.oracle_settings = None
             st.error(str(error))
             st.info(
-                "PLEASE SET ORACLE_USER, ORACLE_PASSWORD, and ORACLE_DSN in the environment (within the terminal or in a .env file)"
-                "before starting Streamlit."
+                "Set ORACLE_USER, ORACLE_PASSWORD, and ORACLE_DSN in the "
+                "environment or a .env file before starting Streamlit."
             )
             st.stop()
 
     settings = st.session_state.oracle_settings
-
-    st.title("English Premier League DBMS")
 
     if "oracle_connection" not in st.session_state:
         try:
@@ -67,6 +96,10 @@ def main() -> None:
         except oracledb.Error as error:
             st.sidebar.error("Oracle connection failed")
             st.error(f"Could not connect to Oracle:\n\n{error}")
+            st.info(
+                "If SQL Developer went stale, reconnect on the CS VPN and "
+                "refresh this page."
+            )
             st.stop()
 
     connection = st.session_state.oracle_connection
@@ -79,34 +112,20 @@ def main() -> None:
         st.error(f"Oracle connection failed:\n\n{error}")
         st.stop()
 
-    if page == "Clubs":
-        st.header("Clubs")
-
-        try:
-            rows = fetch_clubs(settings, connection)
-            data = pd.DataFrame(rows, columns=CLUB_COLUMNS)
-            st.table(data)
-        except oracledb.Error as error:
-            st.error(f"Could not load the Clubs table:\n\n{error}")
-        else:
-            if st.button("Refresh", type="primary"):
-                st.rerun()
+    if page == "Home":
+        render_home(connection)
+    elif page == "Create Tables":
+        render_create_tables(connection)
+    elif page == "Populate Tables":
+        render_populate_tables(connection)
     elif page == "Query Tables":
-        st.header("Query Tables")
-        query_name = st.selectbox("Choose a predefined query", list(QUERY_TABLES))
-        if st.button("Run Query", type="primary"):
-            try:
-                columns, rows = fetch_query_results(
-                    connection,
-                    QUERY_TABLES[query_name],
-                )
-                results = pd.DataFrame(rows, columns=columns)
-                st.table(results)
-            except oracledb.Error as error:
-                st.error(f"Could not run the selected query:\n\n{error}")
-    else:
-        st.header(page)
-        st.info("Soon... This page is under construction.")
+        render_query_tables(connection)
+    elif page == "Table Browser":
+        render_table_browser(connection)
+    elif page == "Drop Tables":
+        render_drop_tables_stub()
+    elif page == "Data Entry":
+        render_data_entry_stub()
 
 
 if __name__ == "__main__":

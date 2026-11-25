@@ -1,23 +1,28 @@
 # CPS510 English Premier League DBMS
 
-Streamlit interface for connecting to an Oracle database with
-[`python-oracledb`](https://python-oracledb.readthedocs.io/).
+Streamlit GUI for an Oracle-backed English Premier League database
+([`python-oracledb`](https://python-oracledb.readthedocs.io/) Thin mode).
 
-This scaffold does not create tables, seed data, or implement database
-modifications. It uses python-oracledb Thin mode by default, so no Oracle
-Client installation is needed for a basic connection.
+## Assignment menu (rubric)
+
+| Option | Status |
+| --- | --- |
+| **Home** | Landing page: top scorers, assists, recent matches |
+| **Create Tables** | Full 3NF/BCNF schema DDL |
+| **Populate Tables** | Expanded seed (20 clubs, 99 players P01–P99, fixtures/stats) |
+| **Query Tables** | Five predefined advanced reports |
+| **Table Browser** | Searchable Players / Teams / Managers |
+| **Drop Tables** | Reserved for teammate |
+| **Data Entry** | Reserved for teammate (insert/update/delete forms) |
+| **Exit** | Closes the Oracle session |
 
 ## Requirements
 
 - Python 3.10 or later
-- Access to an Oracle 21c, 23ai, or 26ai database with the project schema
-- Streamlit
+- Access to the course Oracle database (or local XE / Free)
+- Streamlit + CS-public-VPN when using the school host
 
 ## Setup
-
-Open and connect to **CS-public-VPN** before starting the application.
-
-From the repository root, create and activate a virtual environment:
 
 ```bash
 python3 -m venv .venv
@@ -26,13 +31,7 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 
-Create a `.env` file in the repository root. Do not commit credentials.
-
-```bash
-touch .env
-```
-
-Edit `.env` with your credentials:
+Create `.env` in the repository root (do not commit credentials):
 
 ```dotenv
 ORACLE_USER=your_username
@@ -40,47 +39,51 @@ ORACLE_PASSWORD=your_password
 ORACLE_DSN=orsrv1.cs.torontomu.ca:1521/orcldb
 ```
 
-Shell environment variables override matching values in `.env`. Use the DSN
-for the database available to you. Examples:
-
-- Course Oracle database: `orsrv1.cs.torontomu.ca:1521/orcldb` (`orcldb` is the database name)
-- Oracle 21c XE: `localhost:1521/XEPDB1`
-- Oracle 23ai: the host and service name supplied by your course
-- Oracle 26ai Free: `localhost:1521/FREEPDB1`
-
-
-Start the application:
+Start the app:
 
 ```bash
 streamlit run src/epl_dbms/__main__.py
 ```
 
-The application reads `ORACLE_USER`, `ORACLE_PASSWORD`, and `ORACLE_DSN` from
-the process environment. A missing value is reported before connecting.
+If the Oracle connection looks stale (empty errors / sudden disconnects),
+reconnect in SQL Developer on the VPN, then refresh the Streamlit page.
 
-## Current screen
+## Recommended first run
 
-The Clubs view runs a fixed `SELECT` for `Team_ID`, `Club_Name`, `Valuation`,
-`Stadium_Name`, `Year_Founded`, and `City`, ordered by `Team_ID`. The `Crest`
-column is not displayed because its database type is not established by the
-provided schema document. The view is read-only and includes a refresh button.
+1. **Create Tables**
+2. **Populate Tables**
+3. Open **Home** and **Table Browser**
 
-The Query Tables page provides five predefined read-only reports. Select a
-report and choose **Run Query** to display the results. Choose **Exit** in the
-sidebar to close the Oracle connection and clear the current Streamlit session
-state; this does not stop the Streamlit server.
-
-The project expects those column names to match the actual schema. No DDL or
-data changes are performed; if the database uses different names or casing,
-adjust the query in `src/epl_dbms/repositories/clubs.py`.
+Populate skips rows that already exist, so you can top up an older 4-club
+database. For a completely clean reload, have your teammate run **Drop Tables**,
+then Create → Populate.
 
 ## Project layout
 
 ```text
 src/epl_dbms/
-  __main__.py                   Streamlit application entry point
-  settings.py                   Environment-based Oracle connection settings
-  database.py                   Thin-mode connection helper
-  repositories/clubs.py         Read-only Clubs query
-  repositories/queries.py       Predefined Query Tables reports
+  __main__.py                 Streamlit entry + navigation
+  settings.py                 .env / environment Oracle settings
+  database.py                 Thin-mode connection helper
+  data/seed.py                Populate Tables dataset
+  repositories/
+    schema.py                 CREATE TABLE statements
+    populate.py               Seed insert logic
+    dashboard.py              Home page queries
+    browser.py                Table Browser queries
+    queries.py                Query Tables reports
+    clubs.py                  Legacy clubs SELECT
+  ui/
+    home.py                   Landing page
+    browser.py                Table Browser UI
+    queries.py                Query Tables UI
+    schema_pages.py           Create / Populate / stubs
+    styles.py                 GUI styling
 ```
+
+## Notes for the teammate
+
+- **Drop Tables**: execute the cascade drops in FK-safe order (copy lives on
+  the Drop Tables stub page).
+- **Data Entry**: build per-table forms for insert / update / delete. Table
+  Browser already covers read + search for Players, Teams, and Managers.
