@@ -8,11 +8,11 @@ import oracledb
 from epl_dbms.database import connect
 from epl_dbms.settings import OracleSettings
 from epl_dbms.ui.browser import render_table_browser
+from epl_dbms.ui.data_entry import render_data_entry
 from epl_dbms.ui.home import render_home
 from epl_dbms.ui.queries import render_query_tables
 from epl_dbms.ui.schema_pages import (
     render_create_tables,
-    render_data_entry_stub,
     render_drop_tables,
     render_populate_tables,
 )
@@ -131,7 +131,7 @@ def main() -> None:
     elif page == "Drop Tables":
         render_drop_tables(connection)
     elif page == "Data Entry":
-        render_data_entry_stub()
+        render_data_entry(connection)
 
 
 if __name__ == "__main__":

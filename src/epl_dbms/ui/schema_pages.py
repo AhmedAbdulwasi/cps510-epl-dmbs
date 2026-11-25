@@ -1,4 +1,4 @@
-"""Create Tables and Populate Tables GUI pages."""
+"""Create, Populate, and Drop Tables GUI pages."""
 
 from __future__ import annotations
 
@@ -107,14 +107,4 @@ def render_drop_tables(connection: oracledb.Connection) -> None:
                 st.error(f"Drop Tables failed:\n\n{error}")
 
 
-def render_data_entry_stub() -> None:
-    st.header("Data Entry")
-    st.warning(
-        "Assigned to your teammate. This section should let users insert, "
-        "update, delete, and search records across each table/form for the "
-        "bonus 'separate access to the form and tables' marks."
-    )
-    st.write(
-        "Table Browser (already implemented) covers read/search. Data Entry "
-        "should add write operations per table."
-    )
+
