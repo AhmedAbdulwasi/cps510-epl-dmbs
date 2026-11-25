@@ -11,7 +11,7 @@ Streamlit GUI for an Oracle-backed English Premier League database
 | **Create Tables** | Full 3NF/BCNF schema DDL |
 | **Populate Tables** | Expanded seed (20 clubs, 99 players P01–P99, fixtures/stats) |
 | **Query Tables** | Five predefined advanced reports |
-| **Table Browser** | Searchable Players / Teams / Managers |
+| **Table Browser** | Searchable view of all 9 schema tables |
 | **Drop Tables** | Reserved for teammate |
 | **Data Entry** | Reserved for teammate (insert/update/delete forms) |
 | **Exit** | Closes the Oracle session |

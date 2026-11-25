@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import pandas as pd
 import streamlit as st
 import oracledb
 
-from epl_dbms.repositories.populate import populate_tables
+from epl_dbms.repositories.populate import populate_tables, table_row_counts
 from epl_dbms.repositories.schema import CREATE_TABLE_STATEMENTS, create_tables
 
 
@@ -20,41 +21,59 @@ def render_create_tables(connection: oracledb.Connection) -> None:
             st.write(f"- `{name}`")
 
     if st.button("Run Create Tables", type="primary"):
-        try:
-            messages = create_tables(connection)
-            for message in messages:
-                if message.startswith("Failed"):
-                    st.error(message)
-                elif "already exists" in message:
-                    st.warning(message)
-                else:
-                    st.success(message)
-        except oracledb.Error as error:
-            st.error(f"Create Tables failed:\n\n{error}")
+        with st.spinner("Creating tables…"):
+            try:
+                messages = create_tables(connection)
+                for message in messages:
+                    if message.startswith("Failed"):
+                        st.error(message)
+                    elif "already exists" in message:
+                        st.warning(message)
+                    else:
+                        st.success(message)
+            except oracledb.Error as error:
+                st.error(f"Create Tables failed:\n\n{error}")
 
 
 def render_populate_tables(connection: oracledb.Connection) -> None:
     st.header("Populate Tables")
     st.write(
         "Loads the expanded seed set: 20 clubs/stadiums/managers, 99 players "
-        "(P01–P99 fits VARCHAR2(3)), approximate outfielder/goalkeeper ratings, "
-        "fixtures, match stats, and accolades."
+        "(P01–P99 fits VARCHAR2(3)), crest/photo URLs, fixtures, match stats, "
+        "and accolades."
     )
     st.info(
-        "Existing primary keys are skipped, so re-running is safe. "
-        "If your teammate has Drop Tables ready, run Drop → Create → Populate "
-        "for a clean reload."
+        "Already-loaded rows are detected quickly and reported as "
+        "“already present”. Club crest and player photo URLs are refreshed "
+        "even when the row already exists."
     )
+
     if st.button("Run Populate Tables", type="primary"):
-        try:
-            messages = populate_tables(connection)
-            for message in messages:
-                if message.startswith("Populate failed"):
-                    st.error(message)
-                else:
-                    st.success(message)
-        except oracledb.Error as error:
-            st.error(f"Populate Tables failed:\n\n{error}")
+        with st.spinner("Checking existing rows and populating…"):
+            try:
+                messages = populate_tables(connection)
+                for message in messages:
+                    if message.startswith("Populate failed"):
+                        st.error(message)
+                    elif "already present" in message and "0 inserted" in message:
+                        st.info(message)
+                    elif "already in the database" in message:
+                        st.info(message)
+                    else:
+                        st.success(message)
+            except oracledb.Error as error:
+                st.error(f"Populate Tables failed:\n\n{error}")
+
+    st.subheader("Current table counts")
+    try:
+        counts = table_row_counts(connection)
+        st.dataframe(
+            pd.DataFrame(counts, columns=["Table", "Rows"]),
+            hide_index=True,
+            use_container_width=True,
+        )
+    except oracledb.Error as error:
+        st.error(f"Could not read table counts:\n\n{error}")
 
 
 def render_drop_tables_stub() -> None:

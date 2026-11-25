@@ -25,7 +25,7 @@ CREATE_TABLE_STATEMENTS: list[tuple[str, str]] = [
             Valuation NUMBER DEFAULT 0,
             Stadium_Name VARCHAR2(50),
             Year_Founded NUMBER(4) CHECK (Year_Founded > 1864),
-            Crest VARCHAR2(200),
+            Crest VARCHAR2(400),
             City VARCHAR2(30),
             FOREIGN KEY (Stadium_Name) REFERENCES Stadiums (Stadium_Name)
         )
@@ -55,7 +55,7 @@ CREATE_TABLE_STATEMENTS: list[tuple[str, str]] = [
             Player_ID VARCHAR2(3) PRIMARY KEY,
             Team_ID VARCHAR2(2),
             Player_Name VARCHAR2(50) NOT NULL,
-            Crest VARCHAR2(200),
+            Crest VARCHAR2(400),
             Dominant_Foot VARCHAR2(1),
             Nationality VARCHAR2(3),
             DOB DATE,

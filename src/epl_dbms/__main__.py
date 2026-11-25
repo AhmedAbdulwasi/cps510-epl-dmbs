@@ -74,6 +74,12 @@ def main() -> None:
             st.error(f"Could not close Oracle cleanly:\n\n{close_error}")
         else:
             st.success("Oracle session closed.")
+        st.info(
+            "This ends the app's database session for this browser tab. "
+            "Please close this browser tab when you are finished — Streamlit "
+            "keeps the local web server running until you stop it in the terminal "
+            "(Ctrl+C)."
+        )
         st.stop()
 
     if "oracle_settings" not in st.session_state:
