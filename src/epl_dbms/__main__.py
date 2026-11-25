@@ -13,7 +13,7 @@ from epl_dbms.ui.queries import render_query_tables
 from epl_dbms.ui.schema_pages import (
     render_create_tables,
     render_data_entry_stub,
-    render_drop_tables_stub,
+    render_drop_tables,
     render_populate_tables,
 )
 from epl_dbms.ui.styles import inject_styles
@@ -129,7 +129,7 @@ def main() -> None:
     elif page == "Table Browser":
         render_table_browser(connection)
     elif page == "Drop Tables":
-        render_drop_tables_stub()
+        render_drop_tables(connection)
     elif page == "Data Entry":
         render_data_entry_stub()
 

@@ -7,7 +7,7 @@ import streamlit as st
 import oracledb
 
 from epl_dbms.repositories.populate import populate_tables, table_row_counts
-from epl_dbms.repositories.schema import CREATE_TABLE_STATEMENTS, create_tables
+from epl_dbms.repositories.schema import CREATE_TABLE_STATEMENTS, create_tables, drop_tables
 
 
 def render_create_tables(connection: oracledb.Connection) -> None:
@@ -76,28 +76,35 @@ def render_populate_tables(connection: oracledb.Connection) -> None:
         st.error(f"Could not read table counts:\n\n{error}")
 
 
-def render_drop_tables_stub() -> None:
+def render_drop_tables(connection: oracledb.Connection) -> None:
     st.header("Drop Tables")
+    st.write(
+        "Drops all nine EPL tables in reverse dependency order "
+        "(Player_Accolades → … → Stadiums), which is the Create order backwards."
+    )
     st.warning(
-        "Assigned to your teammate. This menu option is reserved so the "
-        "assignment menu stays complete (Drop / Create / Populate / Query / Exit)."
+        "This permanently deletes every table and all of its rows. "
+        "Run Create Tables and then Populate Tables to rebuild the database."
     )
-    st.code(
-        "\n".join(
-            [
-                "DROP TABLE PLAYER_ACCOLADES CASCADE CONSTRAINTS;",
-                "DROP TABLE PLAYER_STATS CASCADE CONSTRAINTS;",
-                "DROP TABLE GOALKEEPER_ATTRIBUTES CASCADE CONSTRAINTS;",
-                "DROP TABLE OUTFIELDER_ATTRIBUTES CASCADE CONSTRAINTS;",
-                "DROP TABLE PLAYERS CASCADE CONSTRAINTS;",
-                "DROP TABLE MANAGERS CASCADE CONSTRAINTS;",
-                "DROP TABLE FIXTURES CASCADE CONSTRAINTS;",
-                "DROP TABLE CLUBS CASCADE CONSTRAINTS;",
-                "DROP TABLE STADIUMS CASCADE CONSTRAINTS;",
-            ]
-        ),
-        language="sql",
-    )
+    with st.expander("Tables that will be dropped (in this order)", expanded=False):
+        for name, _ in reversed(CREATE_TABLE_STATEMENTS):
+            st.write(f"- `{name}`")
+
+    # Safety check so a misclick during the demo can't wipe the database.
+    confirm = st.checkbox("I understand this deletes all data")
+    if st.button("Run Drop Tables", type="primary", disabled=not confirm):
+        with st.spinner("Dropping tables…"):
+            try:
+                messages = drop_tables(connection)
+                for message in messages:
+                    if message.startswith("Failed"):
+                        st.error(message)
+                    elif "does not exist" in message:
+                        st.warning(message)
+                    else:
+                        st.success(message)
+            except oracledb.Error as error:
+                st.error(f"Drop Tables failed:\n\n{error}")
 
 
 def render_data_entry_stub() -> None:
