@@ -80,10 +80,3 @@ src/epl_dbms/
     schema_pages.py           Create / Populate / stubs
     styles.py                 GUI styling
 ```
-
-## Notes for the teammate
-
-- **Drop Tables**: execute the cascade drops in FK-safe order (copy lives on
-  the Drop Tables stub page).
-- **Data Entry**: build per-table forms for insert / update / delete. Table
-  Browser already covers read + search for Players, Teams, and Managers.
